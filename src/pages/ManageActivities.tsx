@@ -13,6 +13,8 @@ interface Activity {
   id: string;
   name: string;
   category: string;
+  targetDays?: number;
+  currentStreak?: number;
 }
 
 const ManageActivities: React.FC = () => {
