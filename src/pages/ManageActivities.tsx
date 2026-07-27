@@ -63,6 +63,7 @@ const ManageActivities: React.FC = () => {
   }, [currentUser]);
 
   const handleDelete = async (activityId: string) => {
+    if (!currentUser) return;
     if (!window.confirm("Are you sure you want to delete this activity and all its history?")) return;
     
     try {
