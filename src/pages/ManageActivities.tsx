@@ -68,7 +68,11 @@ const ManageActivities: React.FC = () => {
     try {
       await deleteDoc(doc(db, 'activities', activityId));
       
-      const logsQuery = query(collection(db, 'activityLogs'), where('activityId', '==', activityId));
+      const logsQuery = query(
+        collection(db, 'activityLogs'), 
+        where('userId', '==', currentUser.uid),
+        where('activityId', '==', activityId)
+      );
       const logsSnapshot = await getDocs(logsQuery);
       const deletePromises = logsSnapshot.docs.map(logDoc => deleteDoc(doc(db, 'activityLogs', logDoc.id)));
       await Promise.all(deletePromises);
