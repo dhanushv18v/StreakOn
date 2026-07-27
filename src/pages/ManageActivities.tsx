@@ -143,11 +143,11 @@ const ManageActivities: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', paddingBottom: '3rem' }}>
             
             {/* Daily Habits Section */}
-            {activities.filter(a => a.targetDays === 'infinite' || !a.targetDays).length > 0 && (
+            {activities.filter(a => typeof a.targetDays !== 'number').length > 0 && (
               <div>
                 <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', color: 'var(--text-primary)', opacity: 0.8 }}>Daily Habits</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
-                  {activities.filter(a => a.targetDays === 'infinite' || !a.targetDays).map((activity, index) => (
+                  {activities.filter(a => typeof a.targetDays !== 'number').map((activity, index) => (
                     <motion.div 
                       key={activity.id}
                       initial={{ opacity: 0, scale: 0.9 }}

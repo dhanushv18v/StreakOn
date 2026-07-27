@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiCheckCircle, FiCircle, FiLogOut, FiPieChart, FiSettings, FiTrendingUp, FiPlus } from 'react-icons/fi';
-import { format, isFuture, eachDayOfInterval, isSameDay, subDays, addDays } from 'date-fns';
+import { FiCheckCircle, FiCircle, FiLogOut, FiPieChart, FiSettings, FiPlus, FiTrendingUp } from 'react-icons/fi';
+import { format, eachDayOfInterval, isSameDay, subDays, addDays } from 'date-fns';
 import { collection, query, where, getDocs, addDoc, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 import { useAuth } from '../contexts/AuthContext';
@@ -15,7 +15,8 @@ interface Activity {
   id: string;
   name: string;
   category: string;
-  currentStreak: number;
+  currentStreak?: number;
+  targetDays?: number;
 }
 
 interface Log {
@@ -161,20 +162,19 @@ const Dashboard: React.FC = () => {
 
     if (existingLog) {
       setLogs(prev => prev.filter(l => l.activityId !== activityId));
-      setActivities(prev => prev.map(a => a.id === activityId ? { ...a, currentStreak: Math.max(0, a.currentStreak - 1) } : a));
+      setActivities(prev => prev.map(a => a.id === activityId ? { ...a, currentStreak: Math.max(0, (a.currentStreak || 0) - 1) } : a));
     } else {
       const tempId = `temp-${Date.now()}`;
       setLogs(prev => [...prev, { id: tempId, activityId, date: todayFormatted, timestamp: new Date() }]);
-      setActivities(prev => prev.map(a => a.id === activityId ? { ...a, currentStreak: a.currentStreak + 1 } : a));
+      setActivities(prev => prev.map(a => a.id === activityId ? { ...a, currentStreak: (a.currentStreak || 0) + 1 } : a));
     }
 
     try {
-      const activityRef = doc(db, 'activities', activityId);
       if (existingLog) {
         if (!existingLog.id.startsWith('temp-')) {
           await deleteDoc(doc(db, 'activityLogs', existingLog.id));
         }
-        await updateDoc(activityRef, { currentStreak: Math.max(0, activity.currentStreak - 1) });
+        await updateDoc(doc(db, 'activities', activity.id), { currentStreak: Math.max(0, (activity.currentStreak || 0) - 1) });
       } else {
         const newLogRef = await addDoc(collection(db, 'activityLogs'), {
           userId: currentUser.uid,
@@ -183,7 +183,7 @@ const Dashboard: React.FC = () => {
           timestamp: new Date()
         });
         setLogs(prev => prev.map(l => l.activityId === activityId && l.id.startsWith('temp-') ? { ...l, id: newLogRef.id } : l));
-        await updateDoc(activityRef, { currentStreak: activity.currentStreak + 1 });
+        await updateDoc(doc(db, 'activities', activity.id), { currentStreak: (activity.currentStreak || 0) + 1 });
       }
     } catch (error) {
       console.error("Error toggling activity:", error);
@@ -201,7 +201,7 @@ const Dashboard: React.FC = () => {
   };
 
   // Calculate separate completion percentages
-  const dailyActivities = activities.filter(a => a.targetDays === 'infinite' || !a.targetDays);
+  const dailyActivities = activities.filter(a => typeof a.targetDays !== 'number');
   const dailyLogs = logs.filter(log => dailyActivities.some(a => a.id === log.activityId));
   const dailyPercentage = dailyActivities.length > 0 ? Math.round((dailyLogs.length / dailyActivities.length) * 100) : 0;
 
@@ -345,10 +345,10 @@ const Dashboard: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
               
               {/* Daily Habits List */}
-              {activities.filter(a => a.targetDays === 'infinite' || !a.targetDays).length > 0 && (
+              {activities.filter(a => typeof a.targetDays !== 'number').length > 0 && (
                 <div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.75rem' }}>
-                    {activities.filter(a => a.targetDays === 'infinite' || !a.targetDays).map(activity => {
+                    {activities.filter(a => typeof a.targetDays !== 'number').map((activity) => {
                       const isCompletedToday = logs.some(log => log.activityId === activity.id);
                       return (
                         <motion.div 
@@ -491,7 +491,7 @@ const Dashboard: React.FC = () => {
         <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3 }} style={{ marginTop: '3rem', marginBottom: '4rem' }}>
           <h3 style={{ textAlign: 'center', color: 'var(--text-primary)', marginBottom: '0.5rem', fontSize: '1.25rem' }}>Today's Goal</h3>
           <p style={{ textAlign: 'center', color: 'var(--text-secondary)', fontSize: '0.875rem' }}>
-            {logs.length} out of {activities.filter(a => (a.targetDays === 'infinite' || !a.targetDays) || ((a.currentStreak || 0) < a.targetDays!)).length} activities completed
+            {logs.length} out of {activities.filter(a => (a.targetDays === undefined || typeof a.targetDays !== 'number') || ((a.currentStreak || 0) < a.targetDays)).length} activities completed
           </p>
           
           <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '1rem' }}>

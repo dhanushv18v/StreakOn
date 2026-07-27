@@ -4,8 +4,8 @@ import { motion } from 'framer-motion';
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../firebase';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, AreaChart, Area, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
-import { Link, useNavigate } from 'react-router-dom';
-import { FiArrowLeft, FiPieChart, FiBarChart2, FiStar, FiTrendingUp, FiCheck } from 'react-icons/fi';
+import { Link } from 'react-router-dom';
+import { FiArrowLeft, FiPieChart, FiStar, FiBarChart2 } from 'react-icons/fi';
 import { format, subDays } from 'date-fns';
 import CustomNetworkBackground from '../components/CustomNetworkBackground';
 import BottomNav from '../components/BottomNav';
@@ -14,7 +14,6 @@ const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
 
 const Analytics: React.FC = () => {
   const { currentUser } = useAuth();
-  const navigate = useNavigate();
   const [pieData, setPieData] = useState<any[]>([]);
   const [barData, setBarData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
