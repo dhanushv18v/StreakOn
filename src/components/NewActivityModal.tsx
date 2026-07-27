@@ -26,6 +26,7 @@ const NewActivityModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
   const [duration, setDuration] = useState<string>('infinite');
   const [customDays, setCustomDays] = useState('30');
   const [loading, setLoading] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const handlePreloadedSelect = (act: typeof PRELOADED_ACTIVITIES[0]) => {
     setName(act.name);
@@ -102,37 +103,140 @@ const NewActivityModal: React.FC<Props> = ({ isOpen, onClose, onSuccess }) => {
             
             <div className="input-group">
               <label>Category</label>
-              <select value={category} onChange={e => setCategory(e.target.value)}>
-                <option value="Health">Health</option>
-                <option value="Learning">Learning</option>
-                <option value="Work">Work</option>
-                <option value="Personal">Personal</option>
-              </select>
+              <div style={{ position: 'relative' }}>
+                <div 
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  style={{ 
+                    width: '100%', 
+                    padding: '0.75rem 1rem', 
+                    background: 'rgba(0,0,0,0.5)', 
+                    border: isDropdownOpen ? '1px solid var(--accent-color)' : '1px solid rgba(255,255,255,0.1)', 
+                    borderRadius: '12px',
+                    color: 'white',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    transition: 'all 0.3s ease'
+                  }}
+                >
+                  {category}
+                  <span style={{ fontSize: '0.8rem', transform: isDropdownOpen ? 'rotate(180deg)' : 'none', transition: '0.3s' }}>▼</span>
+                </div>
+                
+                <AnimatePresence>
+                  {isDropdownOpen && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      style={{ 
+                        position: 'absolute', 
+                        top: '100%', left: 0, right: 0, 
+                        marginTop: '0.5rem', 
+                        background: '#18181b', 
+                        border: '1px solid rgba(255,255,255,0.1)', 
+                        borderRadius: '12px', 
+                        overflow: 'hidden',
+                        zIndex: 10,
+                        boxShadow: '0 10px 25px rgba(0,0,0,0.5)'
+                      }}
+                    >
+                      {['Health', 'Learning', 'Work', 'Personal'].map((cat, idx, arr) => (
+                        <div 
+                          key={cat}
+                          onClick={() => { setCategory(cat); setIsDropdownOpen(false); }}
+                          style={{ 
+                            padding: '0.75rem 1rem', 
+                            cursor: 'pointer', 
+                            background: category === cat ? 'rgba(168, 85, 247, 0.15)' : 'transparent',
+                            color: category === cat ? 'var(--accent-color)' : 'var(--text-primary)',
+                            borderBottom: idx === arr.length - 1 ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                            transition: 'background 0.2s'
+                          }}
+                          onMouseOver={(e) => { if(category !== cat) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                          onMouseOut={(e) => { if(category !== cat) e.currentTarget.style.background = 'transparent' }}
+                        >
+                          {cat}
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
             
             <div className="input-group">
-              <label>Duration</label>
-              <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input type="radio" name="duration" value="infinite" checked={duration === 'infinite'} onChange={() => setDuration('infinite')} />
-                  Infinite
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input type="radio" name="duration" value="custom" checked={duration === 'custom'} onChange={() => setDuration('custom')} />
-                  Target Days
-                </label>
+              <label>Goal Type</label>
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
+                <div 
+                  onClick={() => setDuration('infinite')}
+                  style={{ 
+                    flex: 1, 
+                    padding: '1rem 0.5rem', 
+                    textAlign: 'center', 
+                    borderRadius: '16px', 
+                    cursor: 'pointer',
+                    background: duration === 'infinite' ? 'rgba(168, 85, 247, 0.15)' : 'rgba(0,0,0,0.4)',
+                    border: duration === 'infinite' ? '1px solid var(--accent-color)' : '1px solid rgba(255,255,255,0.05)',
+                    color: duration === 'infinite' ? 'var(--accent-color)' : 'var(--text-secondary)',
+                    transition: 'all 0.3s ease',
+                    boxShadow: duration === 'infinite' ? '0 4px 15px rgba(168, 85, 247, 0.15)' : 'none'
+                  }}
+                >
+                  <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.25rem' }}>♾️</span>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Daily Habit</span>
+                </div>
+                <div 
+                  onClick={() => setDuration('custom')}
+                  style={{ 
+                    flex: 1, 
+                    padding: '1rem 0.5rem', 
+                    textAlign: 'center', 
+                    borderRadius: '16px', 
+                    cursor: 'pointer',
+                    background: duration === 'custom' ? 'rgba(251, 191, 36, 0.15)' : 'rgba(0,0,0,0.4)',
+                    border: duration === 'custom' ? '1px solid #fbbf24' : '1px solid rgba(255,255,255,0.05)',
+                    color: duration === 'custom' ? '#fbbf24' : 'var(--text-secondary)',
+                    transition: 'all 0.3s ease',
+                    boxShadow: duration === 'custom' ? '0 4px 15px rgba(251, 191, 36, 0.15)' : 'none'
+                  }}
+                >
+                  <span style={{ fontSize: '1.5rem', display: 'block', marginBottom: '0.25rem' }}>⭐</span>
+                  <span style={{ fontWeight: 600, fontSize: '0.85rem' }}>Challenge</span>
+                </div>
               </div>
             </div>
 
-            {duration === 'custom' && (
-              <div className="input-group">
-                <label>Target Days</label>
-                <input type="number" min="1" max="365" value={customDays} onChange={e => setCustomDays(e.target.value)} />
-              </div>
-            )}
+            <AnimatePresence>
+              {duration === 'custom' && (
+                <motion.div 
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: 'auto', marginTop: '1rem' }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  className="input-group"
+                  style={{ overflow: 'hidden' }}
+                >
+                  <label style={{ color: '#fbbf24' }}>Target Days</label>
+                  <input 
+                    type="number" 
+                    min="1" 
+                    max="365" 
+                    value={customDays} 
+                    onChange={e => setCustomDays(e.target.value)} 
+                    style={{ 
+                      border: '1px solid #fbbf24', 
+                      background: 'rgba(251, 191, 36, 0.05)',
+                      color: '#fff',
+                      boxShadow: '0 0 10px rgba(251, 191, 36, 0.1) inset'
+                    }} 
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} disabled={loading}>
-              {loading ? 'Adding...' : 'Add Activity'}
+            <button type="submit" className="btn btn-primary" style={{ width: '100%', marginTop: '1.5rem', padding: '1rem', fontSize: '1.1rem', borderRadius: '16px' }} disabled={loading}>
+              {loading ? 'Adding...' : 'Create Goal'}
             </button>
           </form>
         </motion.div>
